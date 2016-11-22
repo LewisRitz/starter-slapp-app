@@ -131,8 +131,7 @@ const express = require('express');
 const Slapp = require('slapp');
 const BeepBoopConvoStore = require('slapp-convo-beepboop');
 const BeepBoopContext = require('slapp-context-beepboop');
-
-//if (!process.env.PORT) throw Error('PORT missing but requried');
+if (!process.env.PORT) throw Error('PORT missing but requried');
 
 var slapp = Slapp({
   convo_store: BeepBoopConvoStore(),
@@ -142,16 +141,21 @@ var slapp = Slapp({
 var app = slapp.attachToExpress(express());
 
 slapp.message('hi (.*)', ['direct_message'], (msg, text, match1) => {
+  console.log("hi called");
   msg.say('How are you?').route('handleHi', { what: match1 })
 });
 
 slapp.route('handleHi', (msg, state) => {
+  console.log("handle hi called");
   msg.say(':smile:' + state.what)
 });
 
 app.get('/', function(req, res){
+  console.log("base called");
   res.send('Hello')
 });
 
-console.log('Listening on :' + 8081);
-app.listen(8081);
+// console.log('Listening on :' + 8081);
+// app.listen(8081);
+console.log('Listening on :' + process.env.PORT);
+app.listen(process.env.PORT);
