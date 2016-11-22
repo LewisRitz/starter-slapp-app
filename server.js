@@ -150,7 +150,8 @@ slapp.route('handleHi', (msg, state) => {
 });
 
 slapp.message('rates (.*)', ['direct_message'], (msg, text, match1) => {
-  msg.say('Retrieving rates for indexId: '+match1);
+  msg.say('Retrieving rates for indexId: '+match1).route('handleHi', { what: match1 });
+  console.log("handling rates call");
 });
 
 app.get('/', function(req, res){
