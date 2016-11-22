@@ -128,6 +128,7 @@
 
 'use strict'
 const express = require('express');
+const http = require('http');
 const Slapp = require('slapp');
 const BeepBoopConvoStore = require('slapp-convo-beepboop');
 const BeepBoopContext = require('slapp-context-beepboop');
@@ -146,6 +147,10 @@ slapp.message('hi (.*)', ['direct_message'], (msg, text, match1) => {
 
 slapp.route('handleHi', (msg, state) => {
   msg.say(':smile:' + state.what)
+});
+
+slapp.message('rates (.*)', ['direct_message'], (msg, text, match1) => {
+  msg.say('Retrieving rates for indexId: '+match1);
 });
 
 app.get('/', function(req, res){
