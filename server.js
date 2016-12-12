@@ -129,10 +129,58 @@
 'use strict'
 const express = require('express');
 const http = require('http');
+const request = require('request');
 const Slapp = require('slapp');
 const BeepBoopConvoStore = require('slapp-convo-beepboop');
 const BeepBoopContext = require('slapp-context-beepboop');
-if (!process.env.PORT) throw Error('PORT missing but requried');
+const bodyParser = require('body-parser');
+//if (!process.env.PORT) throw Error('PORT missing but requried');
+
+var options = {
+  host: "http://lb-internal-int:5080",
+  path: "/latestrates?indexids=12"
+};
+
+var test_availableOptions1 = {
+    text: "Commands List",
+    attachments: [
+        {
+            text: "Click to get further help",
+      fallback: "You are unable to choose a command",
+      callback_id: "help_commands",
+      color : "#3AA3E3",
+      attachment_type: "default",
+      actions: [
+        {
+          name:"treasuries",
+          text:"treasuries",
+          type:"button",
+          value:"treasuries"
+        },{
+          name:"ir",
+          text:"ir",
+          type:"button",
+          value:"ir"
+        },{
+          name:"swapRate",
+          text:"swapRate",
+          type:"button",
+          value:"swapRate"
+        },{
+          name:"swapSpread",
+          text:"swapSpread",
+          type:"button",
+          value:"swapSpread"
+        },{
+          name:"fx",
+          text:"fx",
+          type:"button",
+          value:"fx"
+        }
+      ]
+        }
+    ]
+}
 
 var slapp = Slapp({
   convo_store: BeepBoopConvoStore(),
@@ -140,6 +188,12 @@ var slapp = Slapp({
 });
 
 var app = slapp.attachToExpress(express());
+
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
+
+app.get("http://lb-internal-int:5080/latestrates?indexids=12")
 
 slapp.message('hi (.*)', ['direct_message'], (msg, text, match1) => {
   msg.say('How are you?').route('handleHi', { what: match1 })
@@ -150,15 +204,98 @@ slapp.route('handleHi', (msg, state) => {
 });
 
 slapp.message('rates (.*)', ['direct_message'], (msg, text, match1) => {
-  msg.say('Retrieving rates for indexId: '+match1).route('handleHi', { what: match1 });
-  console.log("handling rates call");
+  if (Number.isInteger(parseInt(match1))) {
+    console.log("handling rates call");
+    msg.say('Retrieving rates for indexId: '+match1);
+    var baseRatesUrl = "http://lb-internal-int:5080/latestrates?indexids=";
+    var index = parseInt(match1);
+    request(baseRatesUrl+index, function(error, response, body) {
+      if (!error && response.statusCode == 200) {
+          var data = JSON.parse(body);
+          console.log(data[0]);
+          console.log(data[0].IndexId);
+          msg.say('IndexId: '+data[0].IndexId);
+          msg.say('Bid: '+data[0].Bid);
+          msg.say('Mid: '+data[0].Mid);
+          msg.say('Ask: '+data[0].Ask);
+          msg.say('Source: '+data[0].Source);
+          msg.say('End Of Day: '+data[0].EndOfDayBit);
+          var date = new Date(data[0].UtcTimestamp);
+          msg.say('Timestamp: '+formatDate(date));
+        }
+    });
+  } else {
+    msg.say('Invalid Input: must enter an integer index id instead of: '+match1);
+  }
+});
+
+
+
+var formatDate = function(date){
+  var year = date.getFullYear().toString();
+  var month = (date.getMonth() + 1).toString();
+  var day = date.getDate().toString();
+  var hour = date.getHours().toString();
+  var min = date.getMinutes().toString();
+  var second = date.getSeconds().toString();
+  return year+"-"+month+"-"+day+" "+hour+":"+min+":"+second;
+}
+
+var helpInputHanlder = function(){
+  console.log("halp input handler");
+};
+var dataCommandsHanlder = function(){
+  console.log("data commands handler");
+};
+var dataButtonsHanlder = function(){
+  console.log("data buttons handler");
+};
+
+var MESSAGETYPES = {
+  HELPINPUTS: { name: "helpInputS", handler: helpInputHandler },
+  DATACOMMANDS: { name: "dataCommands", handler: dataCommandsHanlder },
+  DATABUTTONS: { name: "dataButtons", handler: dataButtonsHanlder }
+};
+var possibleCommands = [
+  { inputStrings: [{value: ""}], group: MESSAGETYPES.DATABUTTONS },
+  { inputStrings: [{value: "ust"}], group: MESSAGETYPES.DATABUTTONS },
+  { inputStrings: [{value: "index"}], group: MESSAGETYPES.DATABUTTONS },
+  { inputStrings: [{value: "swap"}], group: MESSAGETYPES.DATABUTTONS },
+  { inputStrings: [{value: "swapspread"}], group: MESSAGETYPES.DATABUTTONS },
+  { inputStrings: [{value: "fx"}], group: MESSAGETYPES.DATABUTTONS },
+  { inputStrings: [{value: "help"}], group: MESSAGETYPES.DATABUTTONS },
+  { inputStrings: [{value: "ust", "help"}], group: MESSAGETYPES.DATABUTTONS },
+  { inputStrings: [{value: "index", "help"}], group: MESSAGETYPES.DATABUTTONS },
+  { inputStrings: [{value: "swap", "help"}], group: MESSAGETYPES.DATABUTTONS },
+  { inputStrings: [{value: "swapspread", "help"}], group: MESSAGETYPES.DATABUTTONS },
+  { inputStrings: [{value: "fx", "help"}], group: MESSAGETYPES.DATABUTTONS, inputSlots: 1 },
+  { inputStrings: [{value: "ust"}, {match: true}] group: MESSAGETYPES.DATACOMMANDS, inputSlots: 1 },
+  { inputStrings: [{value: "index"}, {match: true}], group: MESSAGETYPES.DATACOMMANDS, inputSlots: 1 },
+  { inputStrings: [{value: "swap"}, {match: true}], group: MESSAGETYPES.DATACOMMANDS, inputSlots: 1 },
+  { inputStrings: [{value: "swapspread"}, {match: true}], group: MESSAGETYPES.DATACOMMANDS, inputSlots: 1 },
+  { inputStrings: [{value: "fx"}, {match: true}], group: MESSAGETYPES.DATACOMMANDS, inputSlots: 1 }
+];
+
+app.post('/', function(req, res){
+  console.log("in here");
+  console.log(req.body);
+  var responseObj = {
+    response_type: "in_channel",
+    text: "It's 80 degrees right now.",
+    attachments: [
+      {
+        text: "Partly cloudy today and tomorrow"
+      }
+    ]
+  }
+  res.send(test_availableOptions1);
 });
 
 app.get('/', function(req, res){
   res.send('Hello')
 });
 
-// console.log('Listening on :' + 8081);
-// app.listen(8081);
-console.log('Listening on :' + process.env.PORT);
-app.listen(process.env.PORT);
+console.log('Listening on :' + 8081);
+app.listen(8081);
+// console.log('Listening on :' + process.env.PORT);
+// app.listen(process.env.PORT);
