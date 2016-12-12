@@ -241,7 +241,7 @@ var formatDate = function(date){
   return year+"-"+month+"-"+day+" "+hour+":"+min+":"+second;
 }
 
-var helpInputHanlder = function(){
+var helpInputHandler = function(){
   console.log("halp input handler");
 };
 var dataCommandsHanlder = function(){
@@ -264,12 +264,12 @@ var possibleCommands = [
   { inputStrings: [{value: "swapspread"}], group: MESSAGETYPES.DATABUTTONS },
   { inputStrings: [{value: "fx"}], group: MESSAGETYPES.DATABUTTONS },
   { inputStrings: [{value: "help"}], group: MESSAGETYPES.DATABUTTONS },
-  { inputStrings: [{value: "ust", "help"}], group: MESSAGETYPES.DATABUTTONS },
-  { inputStrings: [{value: "index", "help"}], group: MESSAGETYPES.DATABUTTONS },
-  { inputStrings: [{value: "swap", "help"}], group: MESSAGETYPES.DATABUTTONS },
-  { inputStrings: [{value: "swapspread", "help"}], group: MESSAGETYPES.DATABUTTONS },
-  { inputStrings: [{value: "fx", "help"}], group: MESSAGETYPES.DATABUTTONS, inputSlots: 1 },
-  { inputStrings: [{value: "ust"}, {match: true}] group: MESSAGETYPES.DATACOMMANDS, inputSlots: 1 },
+  { inputStrings: [{value: "ust"}, {value: "help"}], group: MESSAGETYPES.DATABUTTONS },
+  { inputStrings: [{value: "index"},{value: "help"}], group: MESSAGETYPES.DATABUTTONS },
+  { inputStrings: [{value: "swap"}, {value: "help"}], group: MESSAGETYPES.DATABUTTONS },
+  { inputStrings: [{value: "swapspread"}, {value: "help"}], group: MESSAGETYPES.DATABUTTONS },
+  { inputStrings: [{value: "fx"}, {value: "help"}], group: MESSAGETYPES.DATABUTTONS, inputSlots: 1 },
+  { inputStrings: [{value: "ust"}, {match: true}], group: MESSAGETYPES.DATACOMMANDS, inputSlots: 1 },
   { inputStrings: [{value: "index"}, {match: true}], group: MESSAGETYPES.DATACOMMANDS, inputSlots: 1 },
   { inputStrings: [{value: "swap"}, {match: true}], group: MESSAGETYPES.DATACOMMANDS, inputSlots: 1 },
   { inputStrings: [{value: "swapspread"}, {match: true}], group: MESSAGETYPES.DATACOMMANDS, inputSlots: 1 },
